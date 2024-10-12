@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            color: #333333;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #player-select {
+            margin: 20px;
+        }
+
+        #game {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 15px;
+            justify-content: center;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #f0f0f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #e0e0e0;
+            border: 2px solid #007bff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .cell:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .winner {
+            animation: breakEffect 0.5s forwards, flashEffect 0.5s infinite alternate;
+        }
+
+        @keyframes breakEffect {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(0.9) rotate(5deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0) rotate(30deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flashEffect {
+            0% {
+                background-color: #28a745;
+                box-shadow: 0 0 5px #28a745, 0 0 10px #28a745, 0 0 15px #28a745;
+            }
+            100% {
+                background-color: #00ff00;
+                box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+            }
+        }
+
+        #status, #timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        #restart, #ai-toggle, #theme-toggle {
+            padding: 10px 20px;
+            border-radius: 25px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        #restart:hover, #ai-toggle:hover, #theme-toggle:hover {
+            background-color: #0056b3;
+        }
+
+        #scoreboard {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .bubble {
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            color: #fff;
+        }
+
+        #player1-score {
+            background-color: #007bff;
+        }
+
+        #player2-score {
+            background-color: #28a745;
+        }
+
+        /* الوضع الليلي */
+        body.dark-mode {
+            background-color: #181818;
+            color: #ffffff;
+        }
+
+        body.dark-mode h1 {
+            color: #00aaff;
+        }
+
+        body.dark-mode #game {
+            background-color: #2a2a2a;
+        }
+
+        body.dark-mode .cell {
+            background-color: #3c3c3c;
+            border: 2px solid #00aaff;
+        }
+
+        body.dark-mode .cell:hover {
+            background-color: #505050;
+        }
+
+        body.dark-mode #restart, body.dark-mode #ai-toggle, body.dark-mode #theme-toggle {
+            background-color: #00aaff;
+        }
+
+        body.dark-mode #restart:hover, body.dark-mode #ai-toggle:hover, body.dark-mode #theme-toggle:hover {
+            background-color: #0088cc;
+        }
+
+        body.dark-mode #player1-score {
+            background-color: #00aaff;
+        }
+
+        body.dark-mode #player2-score {
+            background-color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tic Tac Toe</h1>
+    <div id="player-select">
+        <label for="player1">Player 1 Symbol:</label>
+        <input type="text" id="player1" value="✖️" maxlength="1" style="border-radius: 15px; padding: 5px; margin: 0 5px; background-color: #e0e0e0; color: #333;">
+        <label for="player2">Player 2 Symbol:</label>
+        <input type="text" id="player2" value="⭕️" maxlength="1" style="border-radius: 15px; padding: 5px; margin: 0 5px; background-color: #e0e0e0; color: #333;">
+    </div>
+    
+    <div id="controls">
+        <button id="ai-toggle">Play AI</button>
+        <button id="restart">Restart Game</button>
+        <button id="theme-toggle">Dark Mode</button>
+    </div>
+
+    <div id="timer">Time Left: <span id="time-left">30</span>s</div>
+    <div id="game">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <div id="status"></div>
+    <div id="scoreboard">
+        <div class="bubble" id="player1-score">Player 1 (✖️): 0</div>
+        <div class="bubble" id="player2-score">Player 2 (⭕️): 0</div>
+    </div>
+
+    <audio id="win-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio>
+    <audio id="draw-sound" src="https://www.soundjay.com/button/sounds/button-17.mp3"></audio>
+    <audio id="click-sound" src="https://www.soundjay.com/button/sounds/button-22.mp3"></audio>
+
+    <script>
+        const cells = document.querySelectorAll('.cell');
+        const statusText = document.getElementById('status');
+        const restartBtn = document.getElementById('restart');
+        const player1Input = document.getElementById('player1');
+        const player2Input = document.getElementById('player2');
+        const player1ScoreText = document.getElementById('player1-score');
+        const player2ScoreText = document.getElementById('player2-score');
+        const aiToggle = document.getElementById('ai-toggle');
+        const timerText = document.getElementById('time-left');
+        const themeToggle = document.getElementById('theme-toggle');
+        const winSound = document.getElementById('win-sound');
+        const drawSound = document.getElementById('draw-sound');
+        const clickSound = document.getElementById('click-sound');
+
+        let options = Array(9).fill("");
+        let currentPlayer = "✖️";
+        let running = false;
+        let scores = { player1: 0, player2: 0 };
+        let isAIMode = false;
+        let timeLeft = 30;
+        let timer;
+
+        initializeGame();
+
+        function initializeGame() {
+            cells.forEach(cell => cell.addEventListener('click', cellClicked));
+            restartBtn.addEventListener('click', restartGame);
+            aiToggle.addEventListener('click', toggleAIMode);
+            themeToggle.addEventListener('click', toggleTheme);
+            updateScore();
+            startTimer();
+            running = true;
+        }
+
+        function startTimer() {
+            timeLeft = 30;
+            timerText.textContent = timeLeft;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                timerText.textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    statusText.textContent = "Time's up! It's a draw!";
+                    running = false;
+                    clearInterval(timer);
+                    drawSound.play().catch(() => {});
+                    resetGame();
+                }
+            }, 1000);
+        }
+
+        function toggleAIMode() {
+            isAIMode = !isAIMode;
+            aiToggle.textContent = isAIMode ? "Play Against Player" : "Play Against AI";
+            restartGame();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            themeToggle.textContent = isDarkMode ? "Light Mode" : "Dark Mode";
+        }
+
+        function cellClicked() {
+            const cellIndex = this.getAttribute('data-index');
+
+            if (options[cellIndex] !== "" || !running) {
+                return;
+            }
+
+            clickSound.play().catch(() => {});
+            updateCell(this, cellIndex);
+            if (running) {
+                checkWinner();
+                if (isAIMode && running) {
+                    setTimeout(aiMove, 500);
+                }
+            }
+        }
+
+        function updateCell(cell, index) {
+            options[index] = currentPlayer;
+            cell.textContent = currentPlayer;
+        }
+
+        function changePlayer() {
+            currentPlayer = (currentPlayer === player1Input.value) ? player2Input.value : player1Input.value;
+            statusText.textContent = `${currentPlayer}'s turn`;
+        }
+
+        function checkWinner() {
+            const winPatterns = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            let roundWon = false;
+
+            for (let condition of winPatterns) {
+                const [a, b, c] = condition;
+                if (options[a] && options[a] === options[b] && options[a] === options[c]) {
+                    roundWon = true;
+                    highlightWinningCells([a, b, c]);
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                if (currentPlayer === player1Input.value) {
+                    scores.player1++;
+                } else {
+                    scores.player2++;
+                }
+                statusText.textContent = `${currentPlayer} wins! 🎉`;
+                winSound.play().catch(() => {});
+                running = false;
+                clearInterval(timer);
+                updateScore();
+                setTimeout(resetGame, 2000);
+            } else if (!options.includes("")) {
+                statusText.textContent = "Draw!";
+                running = false;
+                clearInterval(timer);
+                drawSound.play().catch(() => {});
+                setTimeout(resetGame, 2000);
+            } else {
+                changePlayer();
+            }
+        }
+
+        function highlightWinningCells(indices) {
+            indices.forEach(index => {
+                cells[index].classList.add('winner');
+            });
+        }
+
+        function aiMove() {
+            let availableCells = options.map((cell, index) => cell === "" ? index : null).filter(el => el !== null);
+            let randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+            updateCell(cells[randomIndex], randomIndex);
+            checkWinner();
+        }
+
+        function updateScore() {
+            player1ScoreText.textContent = `Player 1 (${player1Input.value}): ${scores.player1}`;
+            player2ScoreText.textContent = `Player 2 (${player2Input.value}): ${scores.player2}`;
+            currentPlayer = player1Input.value;
+            statusText.textContent = `${currentPlayer}'s turn`;
+        }
+
+        function restartGame() {
+            options.fill("");
+            cells.forEach(cell => {
+                cell.textContent = "";
+                cell.classList.remove('winner');
+            });
+            currentPlayer = player1Input.value || "✖️";
+            statusText.textContent = `${currentPlayer}'s turn`;
+            running = true;
+            scores = { player1: 0, player2: 0 };  // تصفير النتائج
+            updateScore();
+            startTimer();
+        }
+
+        function resetGame() {
+            options.fill("");
+            cells.forEach(cell => {
+                cell.textContent = "";
+                cell.classList.remove('winner');
+            });
+            currentPlayer = player1Input.value || "✖️";
+            statusText.textContent = `${currentPlayer}'s turn`;
+            running = true;
+            startTimer();
+        }
+    </script>
+
+</body>
+</html>
